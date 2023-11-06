@@ -8,6 +8,9 @@ def download_html(url):
         file.write(response.text)
 
 
+#test
+
+
 
 driver = webdriver.Chrome(executable_path='C:/Users/gavis/OneDrive/Desktop/Projects/Vehicl Scraper/Vehicle-Scraper/chromedriver.exe')
 driver.get("https://www.pinkertonlynchburg.com/searchnew.aspx")
