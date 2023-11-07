@@ -19,6 +19,9 @@ def scrape_links_and_download_html(driver_path, page_url):
         if link:
             links.add(link)
 
+
+            
+
     html_contents = []
 
     if not links:
