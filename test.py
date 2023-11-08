@@ -70,6 +70,37 @@ def extract_vehicle_features(html_file):
 
     return vehicle_features
 
+
+def extract_vehicle_price(html_file):
+    with open(html_file, 'r', encoding='utf-8') as file:
+        html_content = file.read()
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+    vehicle_price_div = soup.find('div', {'class': 'vehiclePricingHighlight featuredPrice'})
+
+    vehicle_price = None
+    if vehicle_price_div:
+        vehicle_price_span = vehicle_price_div.find('span', {'class': 'vehiclePricingHighlightAmount'})
+        if vehicle_price_span:
+            vehicle_price = vehicle_price_span.text.strip()
+
+    return vehicle_price
+
+def extract_vehicle_name(html_file):
+    with open(html_file, 'r', encoding='utf-8') as file:
+        html_content = file.read()
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+    vehicle_name_h2 = soup.find('h2', {'class': 'vehicle-title__text'})
+
+    vehicle_name = None
+    if vehicle_name_h2:
+        vehicle_name_span = vehicle_name_h2.find('span', {'class': 'vehicle-title__year-make-model'})
+        if vehicle_name_span:
+            vehicle_name = vehicle_name_span.text.strip()
+
+    return vehicle_name
+
 def main():
     #driver_path = 'chromedriver.exe'
     #page_url = "https://www.pinkertonlynchburg.com/new-trucks.html"
