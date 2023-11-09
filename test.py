@@ -19,6 +19,9 @@ def scrape_links_and_download_html(driver_path, page_url):
         if link:
             links.add(link)
 
+
+
+
     html_contents = []
 
     if not links:
@@ -69,6 +72,20 @@ def extract_vehicle_features(html_file):
                 vehicle_features.append(feature_label.text.strip())
 
     return vehicle_features
+def download_images(html_content, listing_name):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    image_tags = soup.find_all('img')
+
+    # Create directories if they don't exist
+    if not os.path.exists('car_listing_images'):
+        os.makedirs('car_listing_images')
+    if not os.path.exists(f'car_listing_images/{listing_name}'):
+        os.makedirs(f'car_listing_images/{listing_name}')
+    for img in image_tags:
+        img_url = img['src']
+        response = requests.get(img_url, stream=True)
+        with open(f'car_listing_images/{listing_name}/{img["alt"]}.png', 'wb') as out_file:
+            out_file.write(response.content)
 
 
 def extract_vehicle_price(html_file):
@@ -101,20 +118,47 @@ def extract_vehicle_name(html_file):
 
     return vehicle_name
 
+
 def main():
     #driver_path = 'chromedriver.exe'
     #page_url = "https://www.pinkertonlynchburg.com/new-trucks.html"
     #html_contents = scrape_links_and_download_html(driver_path, page_url)
     # Test the first HTML file
     #if html_contents:
-        first_html_file = 'downloaded_html_files/linked_page_1.html'
-        features = extract_vehicle_features(first_html_file)
-        print(features)
+    url = 'https://www.pinkertonlynchburg.com/used-Lynchburg-2013-Chevrolet-Silverado+2500HD-LT-1GC2KXCG2DZ401023' 
+    listing_name = 'example_listing'  
+
+    response = requests.get(url)
+    download_images(response.text, listing_name)
+    first_html_file = 'downloaded_html_files/linked_page_1.html'
+        #features = extract_vehicle_features(first_html_file)
+        #print(features)
+    #vehicle_info = extract_vehicle_info(first_html_file)
+    #print(vehicle_info) 
+
+def extract_vehicle_info(html_file):
+    with open(html_file, 'r', encoding='utf-8') as file:
+        ul_element = file.read()
+
+    soup = BeautifulSoup(ul_element, 'html.parser')
+    info_items = soup.find_all('li', class_='info__item')
+
+    vehicle_info = {}
+
+    for item in info_items:
+        label = item.find('span', class_='info__label').text.strip()
+        value = item.find('span', class_='info__value')
+        if value:
+            vehicle_info[label] = value.get('title', '').strip()
+
+    return vehicle_info
 
 if __name__ == "__main__":
+
     main()
 
 
+
 #TO-DO:
-#Scrape: MPG, Car title, vehicle information, price
+#Scrape: MPG, Car title, vehicle information, price, and the pictures
 #then we need to categorize these features into the facebook features
