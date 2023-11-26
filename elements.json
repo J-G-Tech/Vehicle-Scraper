@@ -1,0 +1,166 @@
+{
+    "login_email": {
+        "xpath": "//*[@id=\"email\"]",
+        "type": "input",
+        "defaults": []
+    },
+    "login_password": {
+        "xpath": "//*[@id=\"pass\"]",
+        "type": "input",
+        "defaults": []
+    },
+    "login_button": {
+        "xpath": "//*[@id=\"loginbutton\"]",
+        "type": "button",
+        "defaults": []
+    },
+    "post_image": {
+        "xpath": "//input[@type='file'][contains(@accept,'image')]",
+        "type": "input",
+        "defaults": []
+    },
+    "post_image_css": {
+        "xpath": "input[type=\"file\"][accept*=\"image\"]",
+        "type": "",
+        "defaults": []
+    },
+    "post_title": {
+        "xpath": "//div[span/text() = \"Title\"]/input",
+        "type": "input",
+        "defaults": []
+    },
+    "post_make": {
+        "xpath": "//div[span/text() = \"Make\"]/input",
+        "type": "input",
+        "defaults": []
+    },
+
+    "post_mileage": {
+        "xpath": "//div[span/text() = \"Mileage\"]/input",
+        "type": "input",
+        "defaults": []
+    },
+    "post_model": {
+        "xpath": "//div[span/text() = \"Model\"]/input",
+        "type": "input",
+        "defaults": []
+    },
+    "post_price": {
+        "xpath": "//div[span/text() = \"Price\"]/input",
+        "type": "input",
+        "defaults": []
+    },
+    "post_sku": {
+        "xpath": "//div[span/text() = \"SKU\"]/input",
+        "type": "input",
+        "defaults": []
+    },
+    "post_location": {
+        "xpath": "//div[span/text() = \"Location\"]/input",
+        "type": "input",
+        "defaults": []
+    },
+    "post_location_option": {
+        "xpath": "//span[text()='Lynchburg, Virginia']",
+        "type": "element",
+        "defaults": []
+    },
+    "post_description": {
+        "xpath": "//div[span/text() = \"Description\"]/textarea",
+        "type": "input",
+        "defaults": []
+    },
+    "post_category": {
+        "xpath": "//span[text() = \"Category\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+    "post_category_option": {
+        "xpath": "//span//span[text() = \"{}\"]",
+        "type": "element",
+        "defaults": "Electronics & computers"
+    },
+    "post_year": {
+        "xpath": "//span[text() = \"Year\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+    "post_year_option": {
+        "xpath": "//div[contains(@class, 'x78zum5')]/div/div/span[text() = '{}']",
+        "type": "element",
+        "defaults": ""
+    },
+    "post_vehicle_type": {
+        "xpath": "//span[text() = \"Vehicle type\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+
+    "post_vehicle_type_option": {
+        "xpath": "//div[contains(@class, 'x78zum5')]/div/span[text() = 'Car/Truck']",
+        "type": "element",
+        "defaults": "Car/Truck"
+    },
+    "post_body_style": {
+        "xpath": "//span[text() = \"Body style\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+
+    "post_body_style_option": {
+        "xpath": "//div[contains(@class, 'x78zum5')]/div/span[text() = '{}']",
+        "type": "element",
+        "defaults": ""
+    },
+
+
+    "post_exterior_color": {
+        "xpath": "//span[text() = \"Exterior color\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+
+    "post_exterior_color_option": {
+        "xpath": "//div[contains(@class, 'x78zum5')]/div/span[text() = '{}']",
+        "type": "element",
+        "defaults": ""
+    },
+
+    "post_interior_color": {
+        "xpath": "//span[text() = \"Interior color\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+
+    "post_interior_color_option": {
+        "xpath": "//div[contains(@class, 'x78zum5')]/div/span[text() = '{}']",
+        "type": "element",
+        "defaults": ""
+    },
+
+    "post_condition": {
+        "xpath": "//span[text() = \"Condition\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+    "post_condition_option": {
+        "xpath": "//div/div/div/div/div/span[text() = \"{}\"]/../../../..",
+        "type": "element",
+        "defaults": "New"
+    },
+    "post_hide_from_friends": {
+        "xpath": "(//input[@type = \"checkbox\"])[2]",
+        "type": "element",
+        "defaults": []
+    },
+    "post_next_button": {
+        "xpath": "//span/span[text()=\"Next\"]",
+        "type": "button",
+        "defaults": []
+    },
+    "post_publish_button": {
+        "xpath": "//div[not(@aria-disabled)]/div/div/div/span/span[text()=\"Publish\"]",
+        "type": "button",
+        "defaults": []
+    }
+}

@@ -12,75 +12,59 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
+import re 
+
+
 class Vehicle:
-    def __init__(self, features, information, price, name, pictures, html):
+    def __init__(self, features, information, price, name,  link):
         self.features = features
         self.information = information
         self.price = price
         self.name = name
-        self.pictures = pictures
-        self.html = html
+        self.link = link
 
-def scrape_links_and_download_html(driver_path, page_url):
+
+def scrape_links(page_url):
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     driver.get(page_url)
 
-    # Wait for the elements to be loaded before trying to find them
-    
-
     elements = driver.find_elements(By.CLASS_NAME, 'hero-carousel__item--viewvehicle')
+    print(f"Found {len(elements)} elements.")
     links = set()
 
     for element in elements:
         link = element.get_attribute('href')
         if link:
             links.add(link)
+            print(f"Found link: {link}")
+    print(f"Found {len(links)} links.")
 
-    html_contents = []
+    
 
     if not links:
         print("No links found with the specified class name.")
-    else:
-        for link in links:
-            # Check if the HTML file for this link already exists in the downloaded_html_files directory
-            file_name = 'downloaded_html_files/' + link.split('/')[-1] + '.html'
-            if os.path.exists(file_name):
-                #print(f"HTML file for {link} already exists. Skipping download.")
-                continue
-
-            driver.get(link)
-            html_content = driver.page_source
-
-            if not html_content:
-                print("No HTML content found for the current page.")
-            else:
-                html_contents.append(html_content)
-            # Go back to the main page after scraping each vehicle
-            driver.back()
-
-    if not html_contents:
-        print("No HTML contents to write to files.")
-    else:
-        # Create a directory for the downloaded HTML files if it doesn't exist
-        if not os.path.exists('downloaded_html_files'):
-            os.makedirs('downloaded_html_files')
-
-        for i, content in enumerate(html_contents, start=1):
-            with open(f'downloaded_html_files/linked_page_{i}.html', 'w', encoding='utf-8') as file:
-                file.write(content)
+    
 
     # Look for the "next" button on the main page
-    next_page_element = driver.find_element(By.CLASS_NAME, 'stat-arrow-next')
+    
+    next_page_element = driver.find_element(By.CSS_SELECTOR, 'a.stat-arrow-next')
     next_page_link = next_page_element.get_attribute('href')
+    
     
     print("next page link", next_page_link)
     driver.quit()
-    return html_contents, next_page_link
+    return next_page_link, links
 
-def extract_vehicle_features(html_file):
+
+def extract_vehicle_features(page_url):
     print("Entering extract_vehicle_features function")
     
-    html_content = html_file
+    response = requests.get(page_url)
+    html_content = response.text
 
     soup = BeautifulSoup(html_content, 'html.parser')
     vehicle_highlights_list = soup.find('ul', {'id': 'vehicle-highlights-list'})
@@ -96,36 +80,48 @@ def extract_vehicle_features(html_file):
     print("Exiting extract_vehicle_features function")
     return vehicle_features
 
-def download_images(html_content, listing_name):
+
+
+def download_images(page_url, vehicle_name, vehicle_vin):
     print("Entering download_images function")
     base_url = 'https://www.pinkertonlynchburg.com'
     
+    response = requests.get(page_url)
+    html_content = response.text
     soup = BeautifulSoup(html_content, 'html.parser')
-    image_tags = soup.find_all('img')
+    image_tags = soup.find_all('a', {'href': re.compile('/inventoryphotos')})
 
     # Create directories if they don't exist
     if not os.path.exists('vehicle_listings'):
         os.makedirs('vehicle_listings')
-    if not os.path.exists(f'vehicle_listings/{listing_name}'):
-        os.makedirs(f'vehicle_listings/{listing_name}')
-    if not os.path.exists(f'vehicle_listings/{listing_name}/images'):
-        os.makedirs(f'vehicle_listings/{listing_name}/images')
+    folder_name = f'{vehicle_name}_{vehicle_vin}'
+    if not os.path.exists(f'vehicle_listings/{folder_name}'):
+        os.makedirs(f'vehicle_listings/{folder_name}')
+    if not os.path.exists(f'vehicle_listings/{folder_name}/images'):
+        os.makedirs(f'vehicle_listings/{folder_name}/images')
     for img in image_tags:
-        img_url = img['src']
-        # Only download images where the href starts with /inventoryphotos
-        if img_url.startswith('/inventoryphotos'):
+        img_url = img['href']
+        print(f"Checking URL: {img_url}")
+        if vehicle_vin.lower() in img_url:
+            print(f"Matched VIN in URL: {img_url}")
             if img_url.startswith('/'):
                 img_url = base_url + img_url
             response = requests.get(img_url, stream=True)
-            with open(f'vehicle_listings/{listing_name}/images/{img["alt"]}.png', 'wb') as out_file:
-                out_file.write(response.content)
+            if response.status_code == 200:
+                print(f"Downloading image from: {img_url}")
+                with open(f'vehicle_listings/{folder_name}/images/{img_url.split("/")[-1]}', 'wb') as out_file:
+                    out_file.write(response.content)
+            else:
+                print(f"Failed to download image. Status code: {response.status_code}")
 
     print("Exiting download_images function")
 
-def extract_vehicle_price(html_file):
+
+def extract_vehicle_price(page_url):
     print("Entering extract_vehicle_price function")
     
-    html_content = html_file
+    response = requests.get(page_url)
+    html_content = response.text
 
     soup = BeautifulSoup(html_content, 'html.parser')
     vehicle_price_div = soup.find('div', {'class': 'vehiclePricingHighlight featuredPrice'})
@@ -139,10 +135,11 @@ def extract_vehicle_price(html_file):
     print("Exiting extract_vehicle_price function")
     return vehicle_price
 
-def extract_vehicle_name(html_file):
+def extract_vehicle_name(page_url):
     print("Entering extract_vehicle_name function")
    
-    html_content = html_file
+    response = requests.get(page_url)
+    html_content = response.text
 
     soup = BeautifulSoup(html_content, 'html.parser')
     vehicle_name_h2 = soup.find('h2', {'class': 'vehicle-title__text'})
@@ -158,12 +155,13 @@ def extract_vehicle_name(html_file):
     return vehicle_name
 
 
-def extract_vehicle_info(html_file):
+def extract_vehicle_info(page_url):
     print("Entering extract_vehicle_info function")
     
-    ul_element = html_file
+    response = requests.get(page_url)
+    html_content = response.text
 
-    soup = BeautifulSoup(ul_element, 'html.parser')
+    soup = BeautifulSoup(html_content, 'html.parser')
     info_items = soup.find_all('li', class_='info__item')
 
     vehicle_info = {}
@@ -174,8 +172,14 @@ def extract_vehicle_info(html_file):
         if value:
             vehicle_info[label] = value.get('title', '').strip()
 
+    # Extract VIN
+    vin_span = soup.find('span', class_='vehicle-identifiers__value')
+    if vin_span:
+        vehicle_info['VIN'] = vin_span.text.strip()
+
     print("Exiting extract_vehicle_info function")
     return vehicle_info
+
 
 def main():
     driver_path = 'chromedriver.exe'
@@ -184,22 +188,22 @@ def main():
 
     
     while page_url:
-        html_contents, page_url = scrape_links_and_download_html(driver_path, page_url)
-
-        for html_content in html_contents:
-            features = extract_vehicle_features(html_content)
-            price = extract_vehicle_price(html_content)
-            name = extract_vehicle_name(html_content)
-            vehicle_info = extract_vehicle_info(html_content)
+        page_url,page_links = scrape_links(page_url)
+        print(len(page_links))
+        for link in page_links:
+            features = extract_vehicle_features(link)
+            price = extract_vehicle_price(link)
+            name = extract_vehicle_name(link)
+            vehicle_info = extract_vehicle_info(link)
 
             # Create a Vehicle object
-            vehicle = Vehicle(features, vehicle_info, price, name, [], html_content)
+            vehicle = Vehicle(features, vehicle_info, price, name,  link)
 
             # Download images
-            download_images(html_content, name)
+            download_images(link, name, vehicle_info['VIN'])
 
             # Write the vehicle attributes to a JSON file
-            with open(f'vehicle_listings/{name}/attributes.json', 'w') as json_file:
+            with open(f'vehicle_listings/{name}_{vehicle_info["VIN"]}/attributes.json', 'w') as json_file:
                 json.dump(vehicle.__dict__, json_file)
 
 
