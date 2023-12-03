@@ -17,7 +17,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 import re 
-
+import shutil
+from examples import publish_single_product
 
 class Vehicle:
     def __init__(self, features, information, price, name,  link):
@@ -92,13 +93,13 @@ def download_images(page_url, vehicle_name, vehicle_vin):
     image_tags = soup.find_all('a', {'href': re.compile('/inventoryphotos')})
 
     # Create directories if they don't exist
-    if not os.path.exists('vehicle_listings'):
-        os.makedirs('vehicle_listings')
+    if not os.path.exists('vehicle_listings/unposted'):
+        os.makedirs('vehicle_listings/unposted')
     folder_name = f'{vehicle_name}_{vehicle_vin}'
-    if not os.path.exists(f'vehicle_listings/{folder_name}'):
-        os.makedirs(f'vehicle_listings/{folder_name}')
-    if not os.path.exists(f'vehicle_listings/{folder_name}/images'):
-        os.makedirs(f'vehicle_listings/{folder_name}/images')
+    if not os.path.exists(f'vehicle_listings/unposted/{folder_name}'):
+        os.makedirs(f'vehicle_listings/unposted/{folder_name}')
+    if not os.path.exists(f'vehicle_listings/unposted/{folder_name}/images'):
+        os.makedirs(f'vehicle_listings/unposted/{folder_name}/images')
     for img in image_tags:
         img_url = img['href']
         print(f"Checking URL: {img_url}")
@@ -109,7 +110,7 @@ def download_images(page_url, vehicle_name, vehicle_vin):
             response = requests.get(img_url, stream=True)
             if response.status_code == 200:
                 print(f"Downloading image from: {img_url}")
-                with open(f'vehicle_listings/{folder_name}/images/{img_url.split("/")[-1]}', 'wb') as out_file:
+                with open(f'vehicle_listings/unposted/{folder_name}/images/{img_url.split("/")[-1]}', 'wb') as out_file:
                     out_file.write(response.content)
             else:
                 print(f"Failed to download image. Status code: {response.status_code}")
@@ -183,36 +184,53 @@ def extract_vehicle_info(page_url):
 
 def main():
     driver_path = 'chromedriver.exe'
-    page_url = "https://www.pinkertonlynchburg.com/new-trucks.html?pt=1"
+    urls = ["https://www.pinkertonlynchburg.com/searchused.aspx?pt=1",
+            "https://www.pinkertonlynchburg.com/searchnew.aspx?pt=1"]
 
+    # Create directories for unposted and posted vehicles if they don't exist
+    if not os.path.exists('vehicle_listings/unposted'):
+        os.makedirs('vehicle_listings/unposted')
+    if not os.path.exists('vehicle_listings/posted'):
+        os.makedirs('vehicle_listings/posted')
 
-    
-    while page_url:
-        page_url,page_links = scrape_links(page_url)
-        print(len(page_links))
-        for link in page_links:
-            features = extract_vehicle_features(link)
-            price = extract_vehicle_price(link)
-            name = extract_vehicle_name(link)
-            vehicle_info = extract_vehicle_info(link)
+    for url in urls:
+        while url:
+            url, page_links = scrape_links(url)
+            print(len(page_links))
+            for link in page_links:
+                features = extract_vehicle_features(link)
+                price = extract_vehicle_price(link)
+                name = extract_vehicle_name(link)
+                vehicle_info = extract_vehicle_info(link)
 
-            # Create a Vehicle object
-            vehicle = Vehicle(features, vehicle_info, price, name,  link)
+                # Check if the vehicle is already downloaded
+                if not os.path.exists(f'vehicle_listings/unposted/{name}_{vehicle_info["VIN"]}') and \
+                   not os.path.exists(f'vehicle_listings/posted/{name}_{vehicle_info["VIN"]}'):
+                    # Create a Vehicle object
+                    vehicle = Vehicle(features, vehicle_info, price, name, link)
 
-            # Download images
-            download_images(link, name, vehicle_info['VIN'])
+                    # Download images
+                    download_images(link, name, vehicle_info['VIN'])
 
-            # Write the vehicle attributes to a JSON file
-            with open(f'vehicle_listings/{name}_{vehicle_info["VIN"]}/attributes.json', 'w') as json_file:
-                json.dump(vehicle.__dict__, json_file)
+                    # Write the vehicle attributes to a JSON file
+                    with open(f'vehicle_listings/unposted/{name}_{vehicle_info["VIN"]}/attributes.json', 'w') as json_file:
+                        json.dump(vehicle.__dict__, json_file)
 
+    # Post unposted vehicles to Facebook
+    for directory in os.listdir('vehicle_listings/unposted'):
+        images_folder = os.path.join('vehicle_listings', 'unposted', directory, 'images')
+        if os.listdir(images_folder):  # Check if the images folder is not empty
+            json_file = os.path.join('vehicle_listings', 'unposted', directory, 'attributes.json')
+            if os.path.isfile(json_file):
+                # Post the vehicle to Facebook
+                publish_single_product(json_file)
+
+                # Move the vehicle directory to the 'posted' directory
+                shutil.move(os.path.join('vehicle_listings', 'unposted', directory), 
+                            os.path.join('vehicle_listings', 'posted', directory))
 
 if __name__ == "__main__":
 
     main()
 
 
-
-#TO-DO:
-#Scrape: MPG, Car title, vehicle information, price, and the pictures
-#then we need to categorize these features into the facebook features

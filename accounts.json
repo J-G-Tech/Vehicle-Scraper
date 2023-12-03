@@ -2,9 +2,9 @@
     "accounts" : [
         {
             "id" : "account1",
-            "name" : "Gavi Shapiro",
-            "email" : "gavishap@gmail.com",
-            "password" : "SRhan55tu!!"
+            "name" : "John Doe",
+            "email" : "johndoe@gmail.com",
+            "password" : "input password" 
         }
     ]
 }

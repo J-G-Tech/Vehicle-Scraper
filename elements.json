@@ -40,6 +40,7 @@
         "type": "input",
         "defaults": []
     },
+    
     "post_model": {
         "xpath": "//div[span/text() = \"Model\"]/input",
         "type": "input",
@@ -66,7 +67,7 @@
         "defaults": []
     },
     "post_description": {
-        "xpath": "//div[span/text() = \"Description\"]/textarea",
+        "xpath": "//span[text()='Description']/following-sibling::textarea",
         "type": "input",
         "defaults": []
     },
@@ -90,6 +91,39 @@
         "type": "element",
         "defaults": ""
     },
+
+    "post_vehicle_condition": {
+        "xpath": "//span[text() = \"Vehicle condition\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+    "post_vehicle_condition_option": {
+        "xpath": "//div[contains(@class, 'x78zum5')]/div/div/span[text() = '{}']",
+        "type": "element",
+        "defaults": ""
+    },
+
+    "post_fuel_type": {
+        "xpath": "//span[text() = \"Fuel type\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+    "post_fuel_type_option": {
+        "xpath": "//div[contains(@class, 'x78zum5')]/div/div/span[text() = '{}']",
+        "type": "element",
+        "defaults": ""
+    },
+    "post_transmission": {
+        "xpath": "//span[text() = \"Transmission\"]/..",
+        "type": "element",
+        "defaults": []
+    },
+    "post_transmission_option": {
+        "xpath": "//div[contains(@class, 'x78zum5')]/div/div/span[text() = '{}']",
+        "type": "element",
+        "defaults": ""
+    },
+    
     "post_vehicle_type": {
         "xpath": "//span[text() = \"Vehicle type\"]/..",
         "type": "element",
@@ -135,7 +169,7 @@
     "post_interior_color_option": {
         "xpath": "//div[contains(@class, 'x78zum5')]/div/span[text() = '{}']",
         "type": "element",
-        "defaults": ""
+        "defaults": "Black"
     },
 
     "post_condition": {

@@ -14,7 +14,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-
+from selenium.webdriver.common.by import By
 
 
 
@@ -112,7 +112,14 @@ class Lister:
         listing_item.choose_interior_color()
         time.sleep(self.sleep_time)
         
-        
+        listing_item.choose_vehicle_condition()
+        time.sleep(self.sleep_time)
+
+        listing_item.choose_fuel_type()
+        time.sleep(self.sleep_time)
+
+        listing_item.choose_transmission()
+        time.sleep(self.sleep_time)
         
         
         
@@ -160,25 +167,33 @@ class Item :
         self.driver.execute_script("document.querySelector('%s').classList = []" % Element(self.driver, 'post_image_css').xpath)
         log('Showing image input ..', 'main')
         print(self.item['images'])
-
+        self.item['images'] = self.item['images'][:20]
         # Correctly handle absolute and relative paths
         image_paths = []
-        for image in self.item['images']:
+        uploaded_images = []
+        for image in self.item['images'][:20]:
             if os.path.isabs(image['file']):
                 image_paths.append(image['file'])
             else:
                 image_paths.append(os.path.abspath('images/%s' % image['file']))
 
         # Upload images one by one
-        for image_path in image_paths[:19]:
-            log('sending image ..', 'main')
-            image_upload.send_keys(image_path)
-            log('Uploaded Image Successfully .', 'success')
-            time.sleep(1)  # Wait for 1 second
+        for image_path in image_paths[:20]:
+            if image_path not in uploaded_images:
+                log('sending image ..', 'main')
+                image_upload.send_keys(image_path)
+                log('Uploaded Image Successfully .', 'success')
+                uploaded_images.append(image_path)
+                time.sleep(1)  # Wait for 1 second
+            else:
+                log('Image already uploaded, skipping..', 'main')
 
+        delete_buttons = self.driver.find_elements(By.XPATH, '//div[@aria-label="Remove"]')
+        if delete_buttons:
+            delete_buttons[-1].click()
+            log('Deleted last image.', 'main')
         return True
-        
-            
+    
     def enter_title(self):
         try:
             log('Entering The Title', 'main')
@@ -377,6 +392,69 @@ class Item :
             log('FAILED TO CHOOSE THE year', 'failure')
             return False
 
+
+
+    def choose_vehicle_condition(self):
+        
+            log('Choosing The Year', 'main')
+            category_dropdown = Element(self.driver, 'post_vehicle_condition').element
+            category_dropdown.click()
+            
+            values = self.item['condition'] if 'condition' in self.item.keys() and self.item['condition']  else None
+            category_dropdown_option = Element(self.driver, 'post_vehicle_condition_option', values).element
+           
+            log('clicking The vehicle_condition Dropdown ..', 'sub')
+            category_dropdown_option.click()
+            
+            #log('vehicle_type Chosen Successfully .', 'success')
+            #return True
+        
+            log('FAILED TO CHOOSE THE year', 'failure')
+            return False
+    
+    def choose_fuel_type(self):
+        
+            log('Choosing The Year', 'main')
+            category_dropdown = Element(self.driver, 'post_fuel_type').element
+            category_dropdown.click()
+            
+            values = self.item['fuel type'] if 'fuel type' in self.item.keys() and self.item['fuel type']  else None
+            category_dropdown_option = Element(self.driver, 'post_fuel_type_option', values).element
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            log('clicking The year Dropdown ..', 'sub')
+            category_dropdown_option.click()
+            
+            #log('vehicle_type Chosen Successfully .', 'success')
+            #return True
+        
+            log('FAILED TO CHOOSE THE fuel_type', 'failure')
+            return False
+    
+    def choose_transmission(self):
+        
+            log('Choosing The transmission', 'main')
+            category_dropdown = Element(self.driver, 'post_transmission').element
+            category_dropdown.click()
+            
+            values = self.item['transmission'] if 'transmission' in self.item.keys() and self.item['transmission']  else None
+            category_dropdown_option = Element(self.driver, 'post_transmission_option', values).element
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            print(Element(self.driver, 'post_year_option', values).xpath)
+            log('clicking The transmission Dropdown ..', 'sub')
+            category_dropdown_option.click()
+            
+            #log('vehicle_type Chosen Successfully .', 'success')
+            #return True
+        
+            log('FAILED TO CHOOSE THE transmission', 'failure')
+            return False
     def choose_condition(self):
         try:
             log('Choosing The Condition', 'main')
@@ -394,16 +472,16 @@ class Item :
             return False
     
     def enter_description(self):
-        try:
-            log('Entering The Description', 'main')
-            description_input = Element(self.driver, 'post_description').element
-            description_input.clear()
-            description_input.send_keys(self.item['description'])
-            log('Entered Description Successfully .', 'success')
-            return True
-        except :
-            log('FAILED TO ENTER THE Description', 'failure')
-            return False
+        
+        log('Entering The Description', 'main')
+        description_input = Element(self.driver, 'post_description').element
+        description_input.clear()
+        description_input.send_keys(self.item['description'])
+        log('Entered Description Successfully .', 'success')
+        return True
+        
+        log('FAILED TO ENTER THE Description', 'failure')
+        return False
         
     def enter_sku(self):
         try:
